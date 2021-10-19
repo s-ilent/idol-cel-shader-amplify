@@ -216,7 +216,7 @@ Shader "Silent/IdolCelShader Cutout"
 			float3 normalizeResult60_g22 = normalize( ( ( ase_lightColor.a * ase_worldlightDir ) + ( indirectDir6_g22 * grayscale37_g22 ) ) );
 			float3 mergedLightDir69_g22 = normalizeResult60_g22;
 			float dotResult89_g22 = dot( newWorldNormal24_g22 , mergedLightDir69_g22 );
-			float diffuseShading116_g22 = saturate( ( ( shadowDarkening79_g22 * dotResult89_g22 ) + _ShadingShift1 + shadowBrightening93_g22 ) );
+			float diffuseShading116_g22 = saturate( ( ( shadowDarkening79_g22 * (0.0 + (dotResult89_g22 - -1.0) * (1.0 - 0.0) / (1.0 - -1.0)) ) + _ShadingShift1 + shadowBrightening93_g22 ) );
 			float2 temp_cast_4 = (( 1.0 - diffuseShading116_g22 )).xx;
 			float4 lerpResult127_g22 = lerp( ( diffuseColour118_g22 * float4( litIndirect119_g22 , 0.0 ) ) , temp_output_125_0_g22 , tex2D( _CelShadowTable, temp_cast_4 ));
 			float4 lerpResult129_g22 = lerp( lerpResult127_g22 , temp_output_125_0_g22 , diffuseShading116_g22);
@@ -342,7 +342,7 @@ Shader "Silent/IdolCelShader Cutout"
 }
 /*ASEBEGIN
 Version=18909
-1549;801;1818;946;1571.172;922.1791;1;True;False
+1878;960;1818;940;1571.172;919.1791;1;True;False
 Node;AmplifyShaderEditor.FunctionNode;190;-1219.591,-405.2628;Inherit;False;IdolCelLighting;0;;22;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
 Node;AmplifyShaderEditor.RangedFloatNode;201;-1107.172,-634.1791;Inherit;False;Property;_Cutout;Cutout;23;0;Create;True;0;0;0;False;0;False;0.2;0.2;0;1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.FWidthOpNode;203;-972.172,-497.1791;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
@@ -358,4 +358,4 @@ WireConnection;198;2;202;0
 WireConnection;0;9;198;0
 WireConnection;0;13;190;0
 ASEEND*/
-//CHKSM=FCBBEB5AC7C2C1BF7F11568E7D957E0BC55D2EAD
+//CHKSM=A3873FF4447D65216425E5C06B22E40E87623534

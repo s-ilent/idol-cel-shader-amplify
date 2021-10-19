@@ -122,10 +122,15 @@ Shader "Silent/IdolCelShader Outlines"
 		{
 			UNITY_INITIALIZE_OUTPUT( Input, o );
 			float3 ase_vertexNormal = v.normal.xyz;
+			float outlineWidth207 = v.color.a;
 			float4 ase_screenPos = ComputeScreenPos( UnityObjectToClipPos( v.vertex ) );
 			float4 ase_screenPosNorm = ase_screenPos / ase_screenPos.w;
 			ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
-			v.vertex.xyz += ( _OutlineWidth * ase_vertexNormal * 0.01 * v.color.a * (_OutlineDistanceAdjust.z + (saturate( (0.0 + (ase_screenPosNorm.z - _OutlineDistanceAdjust.x) * (1.0 - 0.0) / (_OutlineDistanceAdjust.y - _OutlineDistanceAdjust.x)) ) - 0.0) * (_OutlineDistanceAdjust.w - _OutlineDistanceAdjust.z) / (1.0 - 0.0)) );
+			float3 ase_worldPos = mul( unity_ObjectToWorld, v.vertex );
+			float3 ase_worldViewDir = normalize( UnityWorldSpaceViewDir( ase_worldPos ) );
+			float4 transform229 = mul(unity_WorldToObject,float4( ase_worldViewDir , 0.0 ));
+			float outlineZPush208 = v.color.b;
+			v.vertex.xyz += ( float4( ( _OutlineWidth * ase_vertexNormal * 0.01 * outlineWidth207 * (_OutlineDistanceAdjust.z + (saturate( (0.0 + (ase_screenPosNorm.z - _OutlineDistanceAdjust.x) * (1.0 - 0.0) / (_OutlineDistanceAdjust.y - _OutlineDistanceAdjust.x)) ) - 0.0) * (_OutlineDistanceAdjust.w - _OutlineDistanceAdjust.z) / (1.0 - 0.0)) ) , 0.0 ) + ( -transform229 * (outlineZPush208*2.0 + -1.0) * 0.04 * 0.1 ) ).xyz;
 			v.vertex.w = 1;
 		}
 
@@ -225,7 +230,7 @@ Shader "Silent/IdolCelShader Outlines"
 				float staticSwitch78_g20 = tex2DNode57_g20.g;
 			#endif
 			float shadowBrightening93_g20 = staticSwitch78_g20;
-			float diffuseShading116_g20 = saturate( ( ( shadowDarkening79_g20 * dotResult89_g20 ) + _ShadingShift1 + shadowBrightening93_g20 ) );
+			float diffuseShading116_g20 = saturate( ( ( shadowDarkening79_g20 * (0.0 + (dotResult89_g20 - -1.0) * (1.0 - 0.0) / (1.0 - -1.0)) ) + _ShadingShift1 + shadowBrightening93_g20 ) );
 			float2 temp_cast_4 = (( 1.0 - diffuseShading116_g20 )).xx;
 			float4 lerpResult127_g20 = lerp( ( diffuseColour118_g20 * float4( litIndirect119_g20 , 0.0 ) ) , temp_output_125_0_g20 , tex2D( _CelShadowTable, temp_cast_4 ));
 			float4 lerpResult129_g20 = lerp( lerpResult127_g20 , temp_output_125_0_g20 , diffuseShading116_g20);
@@ -346,32 +351,54 @@ Shader "Silent/IdolCelShader Outlines"
 }
 /*ASEBEGIN
 Version=18909
-1904;1195;1818;946;1626.927;145.3759;1;True;False
+1811;1165;1818;934;1800.474;-403.8592;1;True;False
 Node;AmplifyShaderEditor.ScreenPosInputsNode;197;-1528.372,137.8301;Float;False;0;False;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.Vector4Node;204;-1529.927,319.6241;Inherit;False;Property;_OutlineDistanceAdjust;Outline Distance Adjust;23;0;Create;True;0;0;0;False;0;False;0.1,-0.1,0.2,1;0.1,-0.1,0.2,1;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.VertexColorNode;189;-1328.172,40.82092;Inherit;False;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.TFHCRemapNode;203;-1260.396,261.1858;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;0;False;4;FLOAT;1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RegisterLocalVarNode;208;-1160.927,52.62408;Inherit;False;outlineZPush;-1;True;1;0;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.ViewDirInputsCoordNode;227;-1324.125,646.0742;Inherit;False;World;False;0;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
 Node;AmplifyShaderEditor.SaturateNode;205;-1084.927,260.6241;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.NormalVertexDataNode;190;-930.172,-185.1791;Inherit;False;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.RangedFloatNode;193;-920.172,-29.17908;Inherit;False;Constant;_Float1;Float 1;1;0;Create;True;0;0;0;False;0;False;0.01;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.VertexColorNode;189;-926.172,47.82092;Inherit;False;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.RangedFloatNode;191;-906.172,-287.1791;Inherit;False;Property;_OutlineWidth;Outline Width;24;0;Create;True;0;0;0;False;0;False;0.1;0.1;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.GetLocalVarNode;224;-1355.824,813.7051;Inherit;False;208;outlineZPush;1;0;OBJECT;;False;1;FLOAT;0
+Node;AmplifyShaderEditor.WorldToObjectTransfNode;229;-1169.876,643.9953;Inherit;False;1;0;FLOAT4;0,0,0,1;False;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.RegisterLocalVarNode;207;-1157.927,132.6241;Inherit;False;outlineWidth;-1;True;1;0;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;233;-1064.474,947.8592;Inherit;False;Constant;_Float0;Float 0;3;0;Create;True;0;0;0;False;0;False;0.04;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;191;-906.172,-287.1791;Inherit;False;Property;_OutlineWidth;Outline Width;24;0;Create;True;0;0;0;False;0;False;0.1;0.5;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.TFHCRemapNode;206;-941.9268,257.6241;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;0;False;4;FLOAT;1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;193;-920.172,-29.17908;Inherit;False;Constant;_Float1;Float 1;1;0;Create;True;0;0;0;False;0;False;0.01;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.ScaleAndOffsetNode;225;-1138.824,816.7051;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;2;False;2;FLOAT;-1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.NormalVertexDataNode;190;-930.172,-185.1791;Inherit;False;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.NegateNode;231;-981.5345,645.4365;Inherit;False;1;0;FLOAT4;0,0,0,0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.RangedFloatNode;234;-1056.474,1034.859;Inherit;False;Constant;_Float2;Float 0;3;0;Create;True;0;0;0;False;0;False;0.1;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;232;-813.5345,642.4365;Inherit;False;4;4;0;FLOAT4;0,0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT4;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;192;-725.172,-243.1791;Inherit;False;5;5;0;FLOAT;0;False;1;FLOAT3;0,0,0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;1;FLOAT3;0
+Node;AmplifyShaderEditor.SimpleAddOpNode;214;-526.1741,155.1539;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT4;0,0,0,0;False;1;FLOAT4;0
 Node;AmplifyShaderEditor.FunctionNode;199;-715.5914,-391.2628;Inherit;False;IdolCelLighting;0;;20;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
 Node;AmplifyShaderEditor.StandardSurfaceOutputNode;0;-241.4635,-612.8721;Float;False;True;-1;2;ASEMaterialInspector;0;0;CustomLighting;Silent/IdolCelShader Outlines;False;False;False;False;False;True;True;True;True;False;False;False;False;False;False;False;False;False;False;False;False;Front;0;False;-1;0;False;-1;False;0;False;-1;0;False;-1;False;0;Opaque;0.5;True;True;0;False;Opaque;;Geometry;All;16;all;True;True;True;True;0;False;-1;False;0;False;-1;255;False;-1;255;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;False;2;15;10;25;False;0.5;False;0;5;False;-1;10;False;-1;0;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;0;0,0,0,0;VertexOffset;True;False;Cylindrical;False;Relative;0;;-1;-1;-1;-1;0;True;0;0;False;-1;-1;0;False;-1;0;0;0;False;0.1;False;-1;0;False;-1;False;15;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT3;0,0,0;False;3;FLOAT3;0,0,0;False;4;FLOAT;0;False;6;FLOAT3;0,0,0;False;7;FLOAT3;0,0,0;False;8;FLOAT;0;False;9;FLOAT;0;False;10;FLOAT;0;False;13;FLOAT3;0,0,0;False;11;FLOAT3;0,0,0;False;12;FLOAT3;0,0,0;False;14;FLOAT4;0,0,0,0;False;15;FLOAT3;0,0,0;False;0
 WireConnection;203;0;197;3
 WireConnection;203;1;204;1
 WireConnection;203;2;204;2
+WireConnection;208;0;189;3
 WireConnection;205;0;203;0
+WireConnection;229;0;227;0
+WireConnection;207;0;189;4
 WireConnection;206;0;205;0
 WireConnection;206;3;204;3
 WireConnection;206;4;204;4
+WireConnection;225;0;224;0
+WireConnection;231;0;229;0
+WireConnection;232;0;231;0
+WireConnection;232;1;225;0
+WireConnection;232;2;233;0
+WireConnection;232;3;234;0
 WireConnection;192;0;191;0
 WireConnection;192;1;190;0
 WireConnection;192;2;193;0
-WireConnection;192;3;189;4
+WireConnection;192;3;207;0
 WireConnection;192;4;206;0
+WireConnection;214;0;192;0
+WireConnection;214;1;232;0
 WireConnection;0;13;199;0
-WireConnection;0;11;192;0
+WireConnection;0;11;214;0
 ASEEND*/
-//CHKSM=21EAB42F6CEA6D7B4FEC53D2EA350454C6DB70F2
+//CHKSM=462E256D428CC993E7A860C9ADBF47AF8440FCB6

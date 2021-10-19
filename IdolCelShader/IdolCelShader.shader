@@ -210,7 +210,7 @@ Shader "Silent/IdolCelShader"
 				float staticSwitch78_g18 = tex2DNode57_g18.g;
 			#endif
 			float shadowBrightening93_g18 = staticSwitch78_g18;
-			float diffuseShading116_g18 = saturate( ( ( shadowDarkening79_g18 * dotResult89_g18 ) + _ShadingShift1 + shadowBrightening93_g18 ) );
+			float diffuseShading116_g18 = saturate( ( ( shadowDarkening79_g18 * (0.0 + (dotResult89_g18 - -1.0) * (1.0 - 0.0) / (1.0 - -1.0)) ) + _ShadingShift1 + shadowBrightening93_g18 ) );
 			float2 temp_cast_4 = (( 1.0 - diffuseShading116_g18 )).xx;
 			float4 lerpResult127_g18 = lerp( ( diffuseColour118_g18 * float4( litIndirect119_g18 , 0.0 ) ) , temp_output_125_0_g18 , tex2D( _CelShadowTable, temp_cast_4 ));
 			float4 lerpResult129_g18 = lerp( lerpResult127_g18 , temp_output_125_0_g18 , diffuseShading116_g18);
@@ -330,9 +330,9 @@ Shader "Silent/IdolCelShader"
 }
 /*ASEBEGIN
 Version=18909
-1549;801;1818;946;1299.172;907.1791;1;True;False
+1878;960;1818;940;1299.172;904.1791;1;True;False
 Node;AmplifyShaderEditor.FunctionNode;188;-694.5914,-385.2628;Inherit;False;IdolCelLighting;0;;18;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
 Node;AmplifyShaderEditor.StandardSurfaceOutputNode;0;-241.4635,-612.8721;Float;False;True;-1;2;ASEMaterialInspector;0;0;CustomLighting;Silent/IdolCelShader;False;False;False;False;False;True;True;True;True;False;False;False;False;False;False;False;False;False;False;False;False;Off;0;False;-1;0;False;-1;False;0;False;-1;0;False;-1;False;0;Opaque;0.5;True;True;0;False;Opaque;;Geometry;All;16;all;True;True;True;True;0;False;-1;False;0;False;-1;255;False;-1;255;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;-1;False;2;15;10;25;False;0.5;False;0;5;False;-1;10;False;-1;0;0;False;-1;0;False;-1;0;False;-1;0;False;-1;0;False;0;0,0,0,0;VertexOffset;True;False;Cylindrical;False;Relative;0;;-1;-1;-1;-1;0;True;0;0;False;-1;-1;0;False;-1;0;0;0;False;0.1;False;-1;0;False;-1;False;15;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT3;0,0,0;False;3;FLOAT3;0,0,0;False;4;FLOAT;0;False;6;FLOAT3;0,0,0;False;7;FLOAT3;0,0,0;False;8;FLOAT;0;False;9;FLOAT;0;False;10;FLOAT;0;False;13;FLOAT3;0,0,0;False;11;FLOAT3;0,0,0;False;12;FLOAT3;0,0,0;False;14;FLOAT4;0,0,0,0;False;15;FLOAT3;0,0,0;False;0
 WireConnection;0;13;188;0
 ASEEND*/
-//CHKSM=2A60B8E572DB727C6D236C66570D424789E0A09B
+//CHKSM=CF05D73D683E150D7BB3A451D5599C3D7F161BC2
