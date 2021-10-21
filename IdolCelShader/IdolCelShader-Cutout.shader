@@ -10,6 +10,7 @@ Shader "Silent/IdolCelShader Cutout"
 		[NoScaleOffset]_NormalMap("Normal Map", 2D) = "bump" {}
 		[NoScaleOffset]_SphereMap("SphereMap", 2D) = "black" {}
 		_Metalness("Metalness", Range( 0 , 1)) = 0
+		[ToggleUI]_RimLight("Rim Light", Float) = 1
 		_RimScale("Rim Scale", Float) = 7.5
 		[Header(Face Specific Features)][Toggle(_USECHEEKMASK_ON)] _UseCheekMask("Use Cheek Mask", Float) = 0
 		[NoScaleOffset]_CheekMaskTexture("CheekMaskTexture", 2D) = "black" {}
@@ -109,6 +110,7 @@ Shader "Silent/IdolCelShader Cutout"
 			
 			uniform sampler2D _NormalMap;
 			uniform sampler2D _ShadowTexture;
+			uniform float _RimLight;
 			uniform float _RimScale;
 			uniform sampler2D _MainTex;
 			uniform float4 _CheekColor;
@@ -189,7 +191,7 @@ Shader "Silent/IdolCelShader Cutout"
 				return o;
 			}
 			
-			fixed4 frag (v2f i ) : SV_Target
+			fixed4 frag (v2f i , half ase_vface : VFACE) : SV_Target
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -209,13 +211,14 @@ Shader "Silent/IdolCelShader Cutout"
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
 				float3 tanNormal24_g36 = temp_output_21_0_g36;
 				float3 worldNormal24_g36 = float3(dot(tanToWorld0,tanNormal24_g36), dot(tanToWorld1,tanNormal24_g36), dot(tanToWorld2,tanNormal24_g36));
-				float3 worldNormal34_g36 = worldNormal24_g36;
+				float3 switchResult164_g36 = (((ase_vface>0)?(worldNormal24_g36):(( worldNormal24_g36 * float3( -1,-1,-1 ) ))));
+				float3 worldNormal34_g36 = switchResult164_g36;
 				float2 uv_ShadowTexture57_g36 = i.ase_texcoord1.xy;
 				float4 tex2DNode57_g36 = tex2D( _ShadowTexture, uv_ShadowTexture57_g36 );
 				float shadowDarkeningFresnel58_g36 = tex2DNode57_g36.a;
 				float vertexColorMaskA59_g36 = i.ase_color.a;
 				float fresnelNdotV94_g36 = dot( normalize( worldNormal34_g36 ), ase_worldViewDir );
-				float fresnelNode94_g36 = ( 0.0 + ( shadowDarkeningFresnel58_g36 * vertexColorMaskA59_g36 ) * pow( max( 1.0 - fresnelNdotV94_g36 , 0.0001 ), _RimScale ) );
+				float fresnelNode94_g36 = ( 0.0 + ( shadowDarkeningFresnel58_g36 * vertexColorMaskA59_g36 * _RimLight ) * pow( max( 1.0 - fresnelNdotV94_g36 , 0.0001 ), _RimScale ) );
 				float2 uv_MainTex31_g36 = i.ase_texcoord1.xy;
 				float4 tex2DNode31_g36 = tex2D( _MainTex, uv_MainTex31_g36 );
 				float2 texCoord3_g36 = i.ase_texcoord1.zw * float2( 1,1 ) + float2( 0,0 );
@@ -249,7 +252,7 @@ Shader "Silent/IdolCelShader Cutout"
 				float saferPower77_g36 = max( dotResult72_g36 , 0.0001 );
 				float shadowHairHilightMask73_g36 = tex2DNode57_g36.g;
 				#ifdef _USEHAIRHILIGHT_ON
-				float4 staticSwitch100_g36 = ( tex2D( _HairTexture, texCoord71_g36 ) * pow( saferPower77_g36 , 5.0 ) * _HilightColor * shadowHairHilightMask73_g36 );
+				float4 staticSwitch100_g36 = ( tex2D( _HairTexture, texCoord71_g36 ) * saturate( pow( saferPower77_g36 , 5.0 ) ) * _HilightColor * shadowHairHilightMask73_g36 );
 				#else
 				float4 staticSwitch100_g36 = float4( 0,0,0,0 );
 				#endif
@@ -273,7 +276,7 @@ Shader "Silent/IdolCelShader Cutout"
 				float grayscale37_g36 = Luminance(litDirect18_g36.rgb);
 				float3 normalizeResult60_g36 = normalize( ( ( ase_lightColor.a * worldSpaceLightDir ) + ( indirectDir6_g36 * grayscale37_g36 ) ) );
 				float3 mergedLightDir69_g36 = normalizeResult60_g36;
-				float dotResult89_g36 = dot( worldNormal24_g36 , mergedLightDir69_g36 );
+				float dotResult89_g36 = dot( worldNormal34_g36 , mergedLightDir69_g36 );
 				#ifdef _USEHAIRHILIGHT_ON
 				float staticSwitch78_g36 = 0.0;
 				#else
@@ -307,13 +310,13 @@ Shader "Silent/IdolCelShader Cutout"
 }
 /*ASEBEGIN
 Version=18909
-1289;750;1818;928;1486.398;807.5034;1;True;False
+2015;1177;1818;922;1486.398;804.5034;1;True;False
 Node;AmplifyShaderEditor.FunctionNode;217;-1220.591,-431.2628;Inherit;False;IdolCelLighting;0;;36;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
-Node;AmplifyShaderEditor.RangedFloatNode;201;-1107.172,-634.1791;Inherit;False;Property;_Cutout;Cutout;24;0;Create;True;0;0;0;False;0;False;0.2;0.2;0;1;0;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;201;-1107.172,-634.1791;Inherit;False;Property;_Cutout;Cutout;25;0;Create;True;0;0;0;False;0;False;0.2;0.2;0;1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.FWidthOpNode;203;-974.172,-502.1791;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleAddOpNode;202;-789.172,-516.1791;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SmoothstepOpNode;198;-579.172,-545.1791;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;0.1;False;2;FLOAT;0.2;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;209;-598.172,-660.1791;Inherit;False;Property;_DisableTransparency;Disable Transparency;23;0;Create;True;0;0;0;False;1;ToggleUI;False;0;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;209;-598.172,-660.1791;Inherit;False;Property;_DisableTransparency;Disable Transparency;24;0;Create;True;0;0;0;False;1;ToggleUI;False;0;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;207;-580.172,-743.1791;Inherit;False;Constant;_1;1;3;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.Compare;210;-284.172,-548.1791;Inherit;False;3;4;0;FLOAT;0;False;1;FLOAT;1;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.DynamicAppendNode;205;-77.172,-402.1791;Inherit;False;FLOAT4;4;0;FLOAT3;0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT4;0
@@ -332,4 +335,4 @@ WireConnection;205;0;217;0
 WireConnection;205;3;210;0
 WireConnection;204;0;205;0
 ASEEND*/
-//CHKSM=30B1578BE265671629045FE928E35D1228616D83
+//CHKSM=E17EAF1047CDFBF6AA34DA00844D18D7A23F080A
