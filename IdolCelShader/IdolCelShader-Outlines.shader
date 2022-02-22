@@ -67,9 +67,9 @@ Shader "Silent/IdolCelShader Outlines"
 			#pragma fragment frag
 			#pragma multi_compile_instancing
 			#include "UnityCG.cginc"
+			#include "UnityStandardBRDF.cginc"
 			#include "Lighting.cginc"
 			#include "AutoLight.cginc"
-			#include "UnityStandardBRDF.cginc"
 			#include "UnityShaderVariables.cginc"
 			#define ASE_NEEDS_VERT_COLOR
 			#define ASE_NEEDS_FRAG_WORLD_POSITION
@@ -111,9 +111,9 @@ Shader "Silent/IdolCelShader Outlines"
 			uniform float _OutlineWidth;
 			uniform float4 _OutlineDistanceAdjust;
 			uniform sampler2D _NormalMap;
+			uniform float _RimScale;
 			uniform sampler2D _ShadowTexture;
 			uniform float _RimLight;
-			uniform float _RimScale;
 			uniform sampler2D _MainTex;
 			uniform float4 _CheekColor;
 			uniform float _NoseRatio;
@@ -129,7 +129,7 @@ Shader "Silent/IdolCelShader Outlines"
 			uniform float4 _HilightColor;
 			uniform sampler2D _CelShadowTable;
 			uniform float _ShadingShift;
-			float2 getMatcapUVs50_g20( float3 normal, float3 viewDir )
+			float2 getMatcapUVs50_g26( float3 normal, float3 viewDir )
 			{
 				half3 worldUp = float3(0, 1, 0);
 				half3 worldViewUp = normalize(worldUp - viewDir * dot(viewDir, worldUp));
@@ -201,7 +201,7 @@ Shader "Silent/IdolCelShader Outlines"
 				return o;
 			}
 			
-			fixed4 frag (v2f i , half ase_vface : VFACE) : SV_Target
+			fixed4 frag (v2f i ) : SV_Target
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -209,103 +209,102 @@ Shader "Silent/IdolCelShader Outlines"
 				#ifdef ASE_NEEDS_FRAG_WORLD_POSITION
 				float3 WorldPosition = i.worldPos;
 				#endif
-				float3 ase_worldViewDir = UnityWorldSpaceViewDir(WorldPosition);
-				ase_worldViewDir = normalize(ase_worldViewDir);
-				float2 uv_NormalMap17_g20 = i.ase_texcoord1.xy;
-				float3 temp_output_21_0_g20 = ( UnpackNormal( tex2D( _NormalMap, uv_NormalMap17_g20 ) ) * float3( 1,-1,1 ) );
+				float2 uv_NormalMap17_g26 = i.ase_texcoord1.xy;
+				float3 temp_output_21_0_g26 = ( UnpackNormal( tex2D( _NormalMap, uv_NormalMap17_g26 ) ) * float3( 1,-1,1 ) );
 				float3 ase_worldTangent = i.ase_texcoord2.xyz;
 				float3 ase_worldNormal = i.ase_texcoord3.xyz;
 				float3 ase_worldBitangent = i.ase_texcoord4.xyz;
 				float3 tanToWorld0 = float3( ase_worldTangent.x, ase_worldBitangent.x, ase_worldNormal.x );
 				float3 tanToWorld1 = float3( ase_worldTangent.y, ase_worldBitangent.y, ase_worldNormal.y );
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
-				float3 tanNormal24_g20 = temp_output_21_0_g20;
-				float3 worldNormal24_g20 = float3(dot(tanToWorld0,tanNormal24_g20), dot(tanToWorld1,tanNormal24_g20), dot(tanToWorld2,tanNormal24_g20));
-				float3 switchResult164_g20 = (((ase_vface>0)?(worldNormal24_g20):(( worldNormal24_g20 * float3( -1,-1,-1 ) ))));
-				float3 worldNormal34_g20 = switchResult164_g20;
-				float2 uv_ShadowTexture57_g20 = i.ase_texcoord1.xy;
-				float4 tex2DNode57_g20 = tex2D( _ShadowTexture, uv_ShadowTexture57_g20 );
-				float shadowDarkeningFresnel58_g20 = tex2DNode57_g20.a;
-				float vertexColorMaskA59_g20 = i.ase_color.a;
-				float fresnelNdotV94_g20 = dot( normalize( worldNormal34_g20 ), ase_worldViewDir );
-				float fresnelNode94_g20 = ( 0.0 + ( shadowDarkeningFresnel58_g20 * vertexColorMaskA59_g20 * _RimLight ) * pow( max( 1.0 - fresnelNdotV94_g20 , 0.0001 ), _RimScale ) );
-				float2 uv_MainTex31_g20 = i.ase_texcoord1.xy;
-				float4 tex2DNode31_g20 = tex2D( _MainTex, uv_MainTex31_g20 );
-				float2 texCoord3_g20 = i.ase_texcoord1.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode7_g20 = tex2D( _CheekMaskTexture, texCoord3_g20 );
-				float blushCheekNoseSwitch9_g20 = tex2DNode7_g20.a;
-				float lerpResult15_g20 = lerp( _NoseRatio , _CheekRatio , blushCheekNoseSwitch9_g20);
-				float blendCheek26_g20 = ( lerpResult15_g20 * tex2DNode7_g20.g );
-				float4 lerpResult45_g20 = lerp( tex2DNode31_g20 , _CheekColor , blendCheek26_g20);
-				float blendCheekObliqueLine39_g20 = ( lerpResult15_g20 * tex2DNode7_g20.b );
-				float4 lerpResult54_g20 = lerp( lerpResult45_g20 , _CheekObliqueLineColor , blendCheekObliqueLine39_g20);
-				float lerpResult28_g20 = lerp( _NoseHilightRatio , _CheekHilightRatio , blushCheekNoseSwitch9_g20);
-				float blendCheekHilight47_g20 = ( lerpResult28_g20 * tex2DNode7_g20.r );
-				float4 lerpResult63_g20 = lerp( lerpResult54_g20 , _CheekHilightColor , blendCheekHilight47_g20);
+				float3 tanNormal24_g26 = temp_output_21_0_g26;
+				float3 worldNormal24_g26 = normalize( float3(dot(tanToWorld0,tanNormal24_g26), dot(tanToWorld1,tanNormal24_g26), dot(tanToWorld2,tanNormal24_g26)) );
+				float3 worldNormal34_g26 = worldNormal24_g26;
+				float3 ase_worldViewDir = UnityWorldSpaceViewDir(WorldPosition);
+				ase_worldViewDir = Unity_SafeNormalize( ase_worldViewDir );
+				float dotResult168_g26 = dot( worldNormal34_g26 , ase_worldViewDir );
+				float2 uv_ShadowTexture57_g26 = i.ase_texcoord1.xy;
+				float4 tex2DNode57_g26 = tex2D( _ShadowTexture, uv_ShadowTexture57_g26 );
+				float shadowDarkeningFresnel58_g26 = tex2DNode57_g26.a;
+				float vertexColorMaskA59_g26 = i.ase_color.a;
+				float2 uv_MainTex31_g26 = i.ase_texcoord1.xy;
+				float4 tex2DNode31_g26 = tex2D( _MainTex, uv_MainTex31_g26 );
+				float2 texCoord3_g26 = i.ase_texcoord1.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode7_g26 = tex2D( _CheekMaskTexture, texCoord3_g26 );
+				float blushCheekNoseSwitch9_g26 = tex2DNode7_g26.a;
+				float lerpResult15_g26 = lerp( _NoseRatio , _CheekRatio , blushCheekNoseSwitch9_g26);
+				float blendCheek26_g26 = ( lerpResult15_g26 * tex2DNode7_g26.g );
+				float4 lerpResult45_g26 = lerp( tex2DNode31_g26 , _CheekColor , blendCheek26_g26);
+				float blendCheekObliqueLine39_g26 = ( lerpResult15_g26 * tex2DNode7_g26.b );
+				float4 lerpResult54_g26 = lerp( lerpResult45_g26 , _CheekObliqueLineColor , blendCheekObliqueLine39_g26);
+				float lerpResult28_g26 = lerp( _NoseHilightRatio , _CheekHilightRatio , blushCheekNoseSwitch9_g26);
+				float blendCheekHilight47_g26 = ( lerpResult28_g26 * tex2DNode7_g26.r );
+				float4 lerpResult63_g26 = lerp( lerpResult54_g26 , _CheekHilightColor , blendCheekHilight47_g26);
 				#ifdef _USECHEEKMASK_ON
-				float4 staticSwitch68_g20 = lerpResult63_g20;
+				float4 staticSwitch68_g26 = lerpResult63_g26;
 				#else
-				float4 staticSwitch68_g20 = tex2DNode31_g20;
+				float4 staticSwitch68_g26 = tex2DNode31_g26;
 				#endif
-				float4 baseAlbedo82_g20 = staticSwitch68_g20;
-				float4 rimContribution107_g20 = ( saturate( fresnelNode94_g20 ) * baseAlbedo82_g20 );
-				float3 normal50_g20 = worldNormal34_g20;
-				float3 viewDir50_g20 = ase_worldViewDir;
-				float2 localgetMatcapUVs50_g20 = getMatcapUVs50_g20( normal50_g20 , viewDir50_g20 );
-				float roughnessOrAlpha55_g20 = tex2DNode31_g20.a;
-				float4 sphereMapContribution76_g20 = ( tex2D( _SphereMap, localgetMatcapUVs50_g20 ) * roughnessOrAlpha55_g20 );
-				float4 lerpResult109_g20 = lerp( ( sphereMapContribution76_g20 + baseAlbedo82_g20 ) , ( baseAlbedo82_g20 + ( sphereMapContribution76_g20 * baseAlbedo82_g20 ) ) , _Metalness);
-				float2 texCoord71_g20 = i.ase_texcoord1.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 baseAlbedo82_g26 = staticSwitch68_g26;
+				float4 rimContribution107_g26 = ( saturate( ( pow( ( 1.0 - max( dotResult168_g26 , 0.0001 ) ) , _RimScale ) * ( shadowDarkeningFresnel58_g26 * vertexColorMaskA59_g26 * _RimLight ) ) ) * baseAlbedo82_g26 );
+				float3 normal50_g26 = worldNormal34_g26;
+				ase_worldViewDir = normalize(ase_worldViewDir);
+				float3 viewDir50_g26 = ase_worldViewDir;
+				float2 localgetMatcapUVs50_g26 = getMatcapUVs50_g26( normal50_g26 , viewDir50_g26 );
+				float roughnessOrAlpha55_g26 = tex2DNode31_g26.a;
+				float4 sphereMapContribution76_g26 = ( tex2D( _SphereMap, localgetMatcapUVs50_g26 ) * roughnessOrAlpha55_g26 );
+				float4 lerpResult109_g26 = lerp( ( sphereMapContribution76_g26 + baseAlbedo82_g26 ) , ( baseAlbedo82_g26 + ( sphereMapContribution76_g26 * baseAlbedo82_g26 ) ) , _Metalness);
+				float2 texCoord71_g26 = i.ase_texcoord1.zw * float2( 1,1 ) + float2( 0,0 );
 				float3 worldSpaceLightDir = Unity_SafeNormalize(UnityWorldSpaceLightDir(WorldPosition));
-				float3 normalizeResult4_g21 = normalize( ( ase_worldViewDir + worldSpaceLightDir ) );
-				float dotResult72_g20 = dot( worldNormal34_g20 , normalizeResult4_g21 );
-				float saferPower77_g20 = max( dotResult72_g20 , 0.0001 );
-				float shadowHairHilightMask73_g20 = tex2DNode57_g20.g;
+				float3 normalizeResult4_g27 = normalize( ( ase_worldViewDir + worldSpaceLightDir ) );
+				float dotResult72_g26 = dot( worldNormal34_g26 , normalizeResult4_g27 );
+				float saferPower77_g26 = max( dotResult72_g26 , 0.0001 );
+				float shadowHairHilightMask73_g26 = tex2DNode57_g26.g;
 				#ifdef _USEHAIRHILIGHT_ON
-				float4 staticSwitch100_g20 = ( tex2D( _HairTexture, texCoord71_g20 ) * saturate( pow( saferPower77_g20 , 5.0 ) ) * _HilightColor * shadowHairHilightMask73_g20 );
+				float4 staticSwitch100_g26 = ( tex2D( _HairTexture, texCoord71_g26 ) * saturate( pow( saferPower77_g26 , 5.0 ) ) * _HilightColor * shadowHairHilightMask73_g26 );
 				#else
-				float4 staticSwitch100_g20 = float4( 0,0,0,0 );
+				float4 staticSwitch100_g26 = float4( 0,0,0,0 );
 				#endif
-				float4 hairHilightContribution105_g20 = staticSwitch100_g20;
-				float4 diffuseColour118_g20 = ( rimContribution107_g20 + lerpResult109_g20 + hairHilightContribution105_g20 );
-				float3 normal115_g20 = float4(0,0,0,1).xyz;
-				float3 localSimpleIndirectDiffuseLight115_g20 = SimpleIndirectDiffuseLight( normal115_g20 );
-				float3 litIndirect119_g20 = localSimpleIndirectDiffuseLight115_g20;
+				float4 hairHilightContribution105_g26 = staticSwitch100_g26;
+				float4 diffuseColour118_g26 = ( rimContribution107_g26 + lerpResult109_g26 + hairHilightContribution105_g26 );
+				float3 normal115_g26 = float4(0,0,0,1).xyz;
+				float3 localSimpleIndirectDiffuseLight115_g26 = SimpleIndirectDiffuseLight( normal115_g26 );
+				float3 litIndirect119_g26 = localSimpleIndirectDiffuseLight115_g26;
 				#if defined(LIGHTMAP_ON) && ( UNITY_VERSION < 560 || ( defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) ) )//aselc
 				float4 ase_lightColor = 0;
 				#else //aselc
 				float4 ase_lightColor = _LightColor0;
 				#endif //aselc
-				float3 localindirectDir4_g20 = indirectDir();
-				float3 indirectDir6_g20 = localindirectDir4_g20;
-				float3 normal14_g20 = indirectDir6_g20;
-				float3 localSimpleIndirectDiffuseLight14_g20 = SimpleIndirectDiffuseLight( normal14_g20 );
-				float4 litDirect18_g20 = ( ase_lightColor + float4( localSimpleIndirectDiffuseLight14_g20 , 0.0 ) );
-				float4 temp_output_125_0_g20 = ( litDirect18_g20 * diffuseColour118_g20 );
-				float shadowDarkening79_g20 = tex2DNode57_g20.r;
-				float grayscale37_g20 = Luminance(litDirect18_g20.rgb);
-				float3 normalizeResult60_g20 = normalize( ( ( ase_lightColor.a * worldSpaceLightDir ) + ( indirectDir6_g20 * grayscale37_g20 ) ) );
-				float3 mergedLightDir69_g20 = normalizeResult60_g20;
-				float dotResult89_g20 = dot( worldNormal34_g20 , mergedLightDir69_g20 );
+				float3 localindirectDir4_g26 = indirectDir();
+				float3 indirectDir6_g26 = localindirectDir4_g26;
+				float3 normal14_g26 = indirectDir6_g26;
+				float3 localSimpleIndirectDiffuseLight14_g26 = SimpleIndirectDiffuseLight( normal14_g26 );
+				float4 litDirect18_g26 = ( ase_lightColor + float4( localSimpleIndirectDiffuseLight14_g26 , 0.0 ) );
+				float4 temp_output_125_0_g26 = ( litDirect18_g26 * diffuseColour118_g26 );
+				float shadowDarkening79_g26 = tex2DNode57_g26.r;
+				float grayscale37_g26 = Luminance(litDirect18_g26.rgb);
+				float3 normalizeResult60_g26 = normalize( ( ( ase_lightColor.a * worldSpaceLightDir ) + ( indirectDir6_g26 * grayscale37_g26 ) ) );
+				float3 mergedLightDir69_g26 = normalizeResult60_g26;
+				float dotResult89_g26 = dot( worldNormal34_g26 , mergedLightDir69_g26 );
 				#ifdef _USEHAIRHILIGHT_ON
-				float staticSwitch78_g20 = 0.0;
+				float staticSwitch78_g26 = 0.0;
 				#else
-				float staticSwitch78_g20 = tex2DNode57_g20.g;
+				float staticSwitch78_g26 = tex2DNode57_g26.g;
 				#endif
-				float shadowBrightening93_g20 = staticSwitch78_g20;
-				float diffuseShading116_g20 = saturate( ( ( shadowDarkening79_g20 * (0.0 + (dotResult89_g20 - -1.0) * (1.0 - 0.0) / (1.0 - -1.0)) ) + _ShadingShift + shadowBrightening93_g20 ) );
-				float2 temp_cast_4 = (( 1.0 - diffuseShading116_g20 )).xx;
-				float4 lerpResult127_g20 = lerp( ( diffuseColour118_g20 * float4( litIndirect119_g20 , 0.0 ) ) , temp_output_125_0_g20 , tex2D( _CelShadowTable, temp_cast_4 ));
-				float4 lerpResult129_g20 = lerp( lerpResult127_g20 , temp_output_125_0_g20 , diffuseShading116_g20);
+				float shadowBrightening93_g26 = staticSwitch78_g26;
+				float diffuseShading116_g26 = saturate( ( ( shadowDarkening79_g26 * (0.0 + (dotResult89_g26 - -1.0) * (1.0 - 0.0) / (1.0 - -1.0)) ) + _ShadingShift + shadowBrightening93_g26 ) );
+				float2 temp_cast_4 = (( 1.0 - diffuseShading116_g26 )).xx;
+				float4 lerpResult127_g26 = lerp( ( diffuseColour118_g26 * float4( litIndirect119_g26 , 0.0 ) ) , temp_output_125_0_g26 , tex2D( _CelShadowTable, temp_cast_4 ));
+				float4 lerpResult129_g26 = lerp( lerpResult127_g26 , temp_output_125_0_g26 , diffuseShading116_g26);
 				UNITY_LIGHT_ATTENUATION(ase_atten, i, WorldPosition)
 				#ifdef UNITY_PASS_FORWARDBASE
-				float4 staticSwitch136_g20 = lerpResult129_g20;
+				float4 staticSwitch136_g26 = lerpResult129_g26;
 				#else
-				float4 staticSwitch136_g20 = ( lerpResult129_g20 * ase_atten );
+				float4 staticSwitch136_g26 = ( lerpResult129_g26 * ase_atten );
 				#endif
 				
 				
-				finalColor = ( 0.8 * staticSwitch136_g20 );
+				finalColor = ( 0.8 * staticSwitch136_g26 );
 				return finalColor;
 			}
 			ENDCG
@@ -313,11 +312,11 @@ Shader "Silent/IdolCelShader Outlines"
 	}
 	CustomEditor "ASEMaterialInspector"
 	
-	
+	Fallback "Hidden/IdolCelShader/VRCShadowWorkaround"
 }
 /*ASEBEGIN
 Version=18909
-2015;1177;1818;922;1841.532;871.0372;2.107179;True;False
+1902;487;1818;922;1841.532;871.0372;2.107179;True;False
 Node;AmplifyShaderEditor.ScreenPosInputsNode;197;-1528.372,137.8301;Float;False;0;False;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.Vector4Node;204;-1529.927,319.6241;Inherit;False;Property;_OutlineDistanceAdjust;Outline Distance Adjust;24;0;Create;True;0;0;0;False;0;False;0.1,-0.1,0.2,1;0.1,-0.1,0.2,1;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.VertexColorNode;189;-1328.172,40.82092;Inherit;False;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
@@ -327,20 +326,20 @@ Node;AmplifyShaderEditor.ViewDirInputsCoordNode;227;-1324.125,646.0742;Inherit;F
 Node;AmplifyShaderEditor.SaturateNode;205;-1084.927,260.6241;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.GetLocalVarNode;224;-1355.824,813.7051;Inherit;False;208;outlineZPush;1;0;OBJECT;;False;1;FLOAT;0
 Node;AmplifyShaderEditor.WorldToObjectTransfNode;229;-1169.876,643.9953;Inherit;False;1;0;FLOAT4;0,0,0,1;False;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.NormalVertexDataNode;190;-930.172,-185.1791;Inherit;False;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.RangedFloatNode;193;-920.172,-29.17908;Inherit;False;Constant;_Float1;Float 1;1;0;Create;True;0;0;0;False;0;False;0.01;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.RegisterLocalVarNode;207;-1157.927,132.6241;Inherit;False;outlineWidth;-1;True;1;0;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.TFHCRemapNode;206;-941.9268,257.6241;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;0;False;4;FLOAT;1;False;1;FLOAT;0
-Node;AmplifyShaderEditor.NegateNode;231;-981.5345,645.4365;Inherit;False;1;0;FLOAT4;0,0,0,0;False;1;FLOAT4;0
-Node;AmplifyShaderEditor.ScaleAndOffsetNode;225;-1138.824,816.7051;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;2;False;2;FLOAT;-1;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;234;-1056.474,1034.859;Inherit;False;Constant;_Float2;Float 0;3;0;Create;True;0;0;0;False;0;False;0.1;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;191;-906.172,-287.1791;Inherit;False;Property;_OutlineWidth;Outline Width;25;0;Create;True;0;0;0;False;0;False;0.1;0.5;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;233;-1064.474,947.8592;Inherit;False;Constant;_Float0;Float 0;3;0;Create;True;0;0;0;False;0;False;0.04;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;191;-906.172,-287.1791;Inherit;False;Property;_OutlineWidth;Outline Width;25;0;Create;True;0;0;0;False;0;False;0.1;0.5;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.TFHCRemapNode;206;-941.9268,257.6241;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;0;False;4;FLOAT;1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;193;-920.172,-29.17908;Inherit;False;Constant;_Float1;Float 1;1;0;Create;True;0;0;0;False;0;False;0.01;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.ScaleAndOffsetNode;225;-1138.824,816.7051;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;2;False;2;FLOAT;-1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.NormalVertexDataNode;190;-930.172,-185.1791;Inherit;False;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.NegateNode;231;-981.5345,645.4365;Inherit;False;1;0;FLOAT4;0,0,0,0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.RangedFloatNode;234;-1056.474,1034.859;Inherit;False;Constant;_Float2;Float 0;3;0;Create;True;0;0;0;False;0;False;0.1;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;232;-813.5345,642.4365;Inherit;False;4;4;0;FLOAT4;0,0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT4;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;192;-725.172,-243.1791;Inherit;False;5;5;0;FLOAT;0;False;1;FLOAT3;0,0,0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;1;FLOAT3;0
 Node;AmplifyShaderEditor.SimpleAddOpNode;214;-526.1741,155.1539;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT4;0,0,0,0;False;1;FLOAT4;0
-Node;AmplifyShaderEditor.FunctionNode;199;-715.5914,-391.2628;Inherit;False;IdolCelLighting;0;;20;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;235;-241.4635,-612.8721;Float;False;True;-1;2;ASEMaterialInspector;100;1;Silent/IdolCelShader Outlines;0770190933193b94aaa3065e307002fa;True;Unlit;0;0;FORWARD;2;False;True;0;1;False;-1;0;False;-1;0;1;False;-1;0;False;-1;True;0;False;-1;0;False;-1;False;False;False;False;False;False;False;False;False;True;0;False;-1;True;True;1;False;-1;False;True;True;True;True;True;0;False;-1;False;False;False;False;False;False;False;True;False;255;False;-1;255;False;-1;255;False;-1;7;False;-1;1;False;-1;1;False;-1;1;False;-1;7;False;-1;1;False;-1;1;False;-1;1;False;-1;False;True;1;False;-1;True;3;False;-1;True;True;0;False;-1;0;False;-1;True;1;RenderType=Opaque=RenderType;True;2;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=ForwardBase;False;2;Include;;False;;Native;Pragma;multi_compile_fwdbase;False;;Custom;;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;1;0;1;True;False;;False;0
+Node;AmplifyShaderEditor.FunctionNode;238;-715.5914,-391.2628;Inherit;False;IdolCelLighting;0;;26;a1be52503abdf5b4bba14a8388d9c7c5;0;0;2;FLOAT;152;COLOR;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;235;-241.4635,-612.8721;Float;False;True;-1;2;ASEMaterialInspector;100;1;Silent/IdolCelShader Outlines;0770190933193b94aaa3065e307002fa;True;Unlit;0;0;FORWARD;2;False;True;0;1;False;-1;0;False;-1;0;1;False;-1;0;False;-1;True;0;False;-1;0;False;-1;False;False;False;False;False;False;False;False;False;True;0;False;-1;True;True;1;False;-1;False;True;True;True;True;True;0;False;-1;False;False;False;False;False;False;False;True;False;255;False;-1;255;False;-1;255;False;-1;7;False;-1;1;False;-1;1;False;-1;1;False;-1;7;False;-1;1;False;-1;1;False;-1;1;False;-1;False;True;1;False;-1;True;3;False;-1;True;True;0;False;-1;0;False;-1;True;1;RenderType=Opaque=RenderType;True;2;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=ForwardBase;False;2;Include;;False;;Native;Pragma;multi_compile_fwdbase;False;;Custom;Hidden/IdolCelShader/VRCShadowWorkaround;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;1;0;1;True;False;;False;0
 WireConnection;203;0;197;3
 WireConnection;203;1;204;1
 WireConnection;203;2;204;2
@@ -351,8 +350,8 @@ WireConnection;207;0;189;4
 WireConnection;206;0;205;0
 WireConnection;206;3;204;3
 WireConnection;206;4;204;4
-WireConnection;231;0;229;0
 WireConnection;225;0;224;0
+WireConnection;231;0;229;0
 WireConnection;232;0;231;0
 WireConnection;232;1;225;0
 WireConnection;232;2;233;0
@@ -364,7 +363,7 @@ WireConnection;192;3;207;0
 WireConnection;192;4;206;0
 WireConnection;214;0;192;0
 WireConnection;214;1;232;0
-WireConnection;235;0;199;0
+WireConnection;235;0;238;0
 WireConnection;235;1;214;0
 ASEEND*/
-//CHKSM=69CC35DAB151C4465A4331B66E8237FAA55B7110
+//CHKSM=42A9A645984A02371C75FCAE94FA612D995E90CB
